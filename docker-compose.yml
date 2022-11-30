@@ -1,19 +1,33 @@
 version: "3.9"
 
+# Two Services 1) App 2) DB
+
 services:
   app:
     build:
+
+      # Build the image using the Dockerfile
       context: .
+
+      # Send argumnets of development env = TRUE
       args:
         - DEV=true
     ports:
       - "8000:8000"
+
+    # Set the volume to this path (Any changes in container will make change in the outside files and vice versa)
     volumes:
       - ./app:/app
+
+    # First wait for the DB to run
+    # then migrate 
+    # then runserver
     command: >
       sh -c "python manage.py wait_for_db &&
              python manage.py migrate &&
              python manage.py runserver 0.0.0.0:8000"
+
+    # Pass the environments
     environment:
       - DB_HOST=db
       - DB_NAME=devdb
@@ -24,8 +38,12 @@ services:
 
   db:
     image: postgres:13-alpine
+
+    # Set the volumes into the data/db folder
     volumes:
       - ./data/db:/var/lib/postgresql/data
+
+    # Pass the environments
     environment:
       - POSTGRES_DB=devdb
       - POSTGRES_USER=devuser
